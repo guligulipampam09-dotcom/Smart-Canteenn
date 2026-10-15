@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Canteen - Book For Your Lunch!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scaleIn { animation: scaleIn 0.2s ease-out forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between items-center py-0 sm:py-6">
+
+    <div id="app" class="max-w-md mx-auto w-full bg-white shadow-xl min-h-screen sm:min-h-[750px] sm:rounded-3xl flex flex-col relative overflow-hidden">
+        
+        <!-- PAGE 1: LOGIN -->
+        <div id="page-login" class="flex flex-col justify-between flex-1 p-6 bg-gradient-to-br from-orange-500 to-amber-600 text-white">
+            <div class="mt-12 text-center">
+                <div class="inline-block p-4 bg-white/10 rounded-full backdrop-blur-md mb-4 shadow-inner">
+                    <i class="fa-solid fa-utensils text-4xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight">Lunch Time!!!</h1>
+                <p class="text-orange-100 mt-2 text-sm">Book for your lunch! Pesan makanan kantin jadi lebih mudah & bebas antre.</p>
+                <p class="text-[11px] text-orange-200 mt-1 italic">Oleh: Favion Ghim Kakutra (XII.3)</p>
+            </div>
+
+            <div class="bg-white text-slate-800 rounded-3xl p-6 shadow-2xl mb-8">
+                <h2 class="text-lg font-bold mb-4 text-center text-slate-700">Masuk / Login Siswa</h2>
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nama Lengkap</label>
+                        <input type="text" id="username" required placeholder="Contoh: Favion Ghim" class="w-full px-4 py-3 bg-slate-100 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Kelas</label>
+                        <input type="text" id="userclass" required placeholder="Contoh: XII.3" class="w-full px-4 py-3 bg-slate-100 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 text-sm">
+                        Masuk Kantin <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="text-center text-xs text-orange-100 pb-4">
+                Smart Canteen App &bull; Sederhana, Mudah, Memudahkan
+            </div>
+        </div>
+
+        <!-- PAGE 2: MENU KANTIN -->
+        <div id="page-menu" class="hidden flex-col flex-1 bg-slate-50">
+            <div class="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+                <div>
+                    <h1 class="font-bold text-lg text-slate-800">Smart Canteen</h1>
+                    <p class="text-xs text-slate-500" id="user-greeting">Halo, Siswa</p>
+                </div>
+                <button onclick="openCart()" class="relative p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100 transition">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white hidden">0</span>
+                </button>
+            </div>
+
+            <!-- Filter Kategori -->
+            <div class="px-6 py-3 flex gap-2 overflow-x-auto no-scrollbar bg-white border-b border-slate-100">
+                <button onclick="filterMenu('all')" class="category-btn active px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-semibold whitespace-nowrap shadow-sm shadow-orange-500/20">Semua</button>
+                <button onclick="filterMenu('makanan')" class="category-btn px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap hover:bg-slate-200">Makanan</button>
+                <button onclick="filterMenu('minuman')" class="category-btn px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap hover:bg-slate-200">Minuman</button>
+                <button onclick="filterMenu('snack')" class="category-btn px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap hover:bg-slate-200">Snack</button>
+            </div>
+
+            <!-- Daftar Menu -->
+            <div id="menu-list" class="p-6 grid grid-cols-2 gap-4 pb-28"></div>
+
+            <!-- Bottom Floating Bar -->
+            <div id="cart-floating-bar" class="hidden absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-100 items-center justify-between shadow-lg">
+                <div>
+                    <p class="text-xs text-slate-500">Total Pesanan</p>
+                    <p class="font-bold text-slate-800 text-base" id="floating-total">Rp 0</p>
+                </div>
+                <button onclick="openCart()" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 text-sm flex items-center gap-2">
+                    Lihat Pesanan <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- PAGE 3: CART & CHECKOUT -->
+        <div id="page-cart" class="hidden flex-col flex-1 bg-slate-50">
+            <div class="bg-white px-6 py-4 border-b border-slate-100 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
+                <button onclick="backToMenu()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <h1 class="font-bold text-lg text-slate-800">Data Pesanan & Checkout</h1>
+            </div>
+
+            <div class="p-6 flex-1 flex flex-col justify-between pb-8">
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3 tracking-wider">Menu yang Dipesan</h2>
+                        <div id="cart-items-list" class="space-y-3 max-h-56 overflow-y-auto pr-1"></div>
+                    </div>
+
+                    <div>
+                        <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3 tracking-wider">Pilihan Pembayaran</h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/50">
+                                <input type="radio" name="payment" value="Tunai di Kantin" checked class="text-orange-500 focus:ring-orange-500">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">Tunai / Cash</p>
+                                    <p class="text-[10px] text-slate-500">Bayar saat ambil</p>
+                                </div>
+                            </label>
+                            <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:border-orange-500 transition has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/50">
+                                <input type="radio" name="payment" value="QRIS / Digital" class="text-orange-500 focus:ring-orange-500">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">QRIS / E-Wallet</p>
+                                    <p class="text-[10px] text-slate-500">Scan otomatis</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>Subtotal</span>
+                            <span id="bill-subtotal">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>Biaya Layanan Kantin</span>
+                            <span>Rp 0</span>
+                        </div>
+                        <div class="border-t border-slate-100 pt-2 flex justify-between font-bold text-slate-800 text-base">
+                            <span>Total Pembayaran</span>
+                            <span id="bill-total" class="text-orange-600">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processCheckout()" class="w-full mt-6 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> Bayar & Pesan Sekarang
+                </button>
+            </div>
+        </div>
+
+        <!-- PAGE 4: PAYMENT SUCCESS -->
+        <div id="page-success" class="hidden flex-col items-center justify-center flex-1 p-6 bg-white text-center">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center text-3xl mb-6 shadow-inner animate-bounce">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Payment Success!</h1>
+            <p class="text-slate-500 text-sm mt-2 max-w-xs">Terima kasih telah memesan melalui Smart Canteen. Pesananmu sedang disiapkan oleh penjual kantin.</p>
+
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 w-full my-6 text-left space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">ID Pesanan</span>
+                    <span class="font-bold text-slate-700" id="succ-id">#SC-8832</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Pemesan</span>
+                    <span class="font-bold text-slate-700" id="succ-name">-</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Metode Bayar</span>
+                    <span class="font-bold text-slate-700" id="succ-payment">-</span>
+                </div>
+                <div class="border-t border-slate-200 pt-2 flex justify-between text-xs font-bold">
+                    <span class="text-slate-600">Total</span>
+                    <span class="text-orange-600" id="succ-total">Rp 0</span>
+                </div>
+            </div>
+
+            <button onclick="resetApp()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm">
+                Kembali ke Beranda
+            </button>
+        </div>
+
+        <!-- MODAL PEMBERITAHUAN -->
+        <div id="custom-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl animate-scaleIn">
+                <div id="modal-icon" class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-xl mx-auto mb-4">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h3 id="modal-title" class="font-bold text-lg text-slate-800 mb-1">Pemberitahuan</h3>
+                <p id="modal-desc" class="text-xs text-slate-500 mb-6">Pesan pemberitahuan di sini.</p>
+                <button onclick="closeModal()" class="w-full py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs hover:bg-orange-600">Mengerti</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT APLIKASI -->
+    <script>
+        const menuItems = [
+            { id: 1, name: "Nasi Goreng Spesial", category: "makanan", price: 15000, image: "https://placehold.co/300x200/orange/white?text=Nasi+Goreng", desc: "Nasi goreng lengkap dengan telur dan bakso." },
+            { id: 2, name: "Mie Ayam Bakso", category: "makanan", price: 13000, image: "https://placehold.co/300x200/amber/white?text=Mie+Ayam", desc: "Mie kenyal dengan topping ayam gurih dan bakso." },
+            { id: 3, name: "Es Teh Manis", category: "minuman", price: 4000, image: "https://placehold.co/300x200/sky/white?text=Es+Teh", desc: "Teh melati segar es batu dingin." },
+            { id: 4, name: "Jus Alpukat", category: "minuman", price: 9000, image: "https://placehold.co/300x200/emerald/white?text=Jus+Alpukat", desc: "Jus alpukat kental dengan susu cokelat." },
+            { id: 5, name: "Pisang Keju Crispy", category: "snack", price: 7000, image: "https://placehold.co/300x200/yellow/white?text=Pisang+Keju", desc: "Pisang crispy dengan taburan keju melimpah." },
+            { id: 6, name: "Siomay Bandung", category: "snack", price: 10000, image: "https://placehold.co/300x200/rose/white?text=Siomay", desc: "Siomay ikan asli dengan bumbu kacang gurih." }
+        ];
+
+        let currentUser = { name: "", kelas: "" };
+        let cart = {}; 
+        let currentFilter = 'all';
+
+        function showModal(title, desc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('username').value.trim();
+            const kelas = document.getElementById('userclass').value.trim();
+
+            if (!name || !kelas) {
+                showModal('Peringatan', 'Mohon lengkapi nama dan kelas terlebih dahulu.');
+                return;
+            }
+
+            currentUser.name = name;
+            currentUser.kelas = kelas;
+
+            document.getElementById('user-greeting').innerText = `Halo, ${name} (${kelas})`;
+            
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-menu').classList.remove('hidden');
+            document.getElementById('page-menu').classList.add('flex');
+
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const listEl = document.getElementById('menu-list');
+            listEl.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? menuItems 
+                : menuItems.filter(item => item.category === currentFilter);
+
+            filtered.forEach(item => {
+                const qty = cart[item.id] || 0;
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition";
+                card.innerHTML = `
+                    <div>
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-28 object-cover" onerror="this.src='https://placehold.co/300x200/orange/white?text=Menu'">
+                        <div class="p-3">
+                            <h3 class="font-bold text-xs text-slate-800 line-clamp-1">${item.name}</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-2">${item.desc}</p>
+                            <p class="text-orange-600 font-bold text-xs mt-2">Rp ${item.price.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                    <div class="p-3 pt-0">
+                        ${qty === 0 ? `
+                            <button onclick="updateCart(${item.id}, 1)" class="w-full py-2 bg-orange-50 hover:bg-orange-500 hover:text-white text-orange-600 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Pesan
+                            </button>
+                        ` : `
+                            <div class="flex items-center justify-between bg-orange-50 rounded-xl p-1">
+                                <button onclick="updateCart(${item.id}, -1)" class="w-7 h-7 bg-white text-orange-600 rounded-lg font-bold shadow-sm flex items-center justify-center text-xs hover:bg-orange-500 hover:text-white transition">-</button>
+                                <span class="font-bold text-xs text-orange-700">${qty}</span>
+                                <button onclick="updateCart(${item.id}, 1)" class="w-7 h-7 bg-orange-500 text-white rounded-lg font-bold shadow-sm flex items-center justify-center text-xs hover:bg-orange-600 transition">+</button>
+                            </div>
+                        `}
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function filterMenu(category) {
+            currentFilter = category;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.className = "category-btn px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap hover:bg-slate-200";
+            });
+            event.target.className = "category-btn px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-semibold whitespace-nowrap shadow-sm shadow-orange-500/20";
+            renderMenu();
+        }
+
+        function updateCart(id, delta) {
+            if (!cart[id]) cart[id] = 0;
+            cart[id] += delta;
+            if (cart[id] <= 0) delete cart[id];
+
+            renderMenu();
+            updateCartSummary();
+        }
+
+        function updateCartSummary() {
+            let totalItems = 0;
+            let totalPrice = 0;
+
+            for (let id in cart) {
+                const item = menuItems.find(m => m.id == id);
+                totalItems += cart[id];
+                totalPrice += item.price * cart[id];
+            }
+
+            const badge = document.getElementById('cart-badge');
+            const floatingBar = document.getElementById('cart-floating-bar');
+            const floatingTotal = document.getElementById('floating-total');
+
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+                floatingBar.classList.remove('hidden');
+                floatingBar.classList.add('flex');
+                floatingTotal.innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            } else {
+                badge.classList.add('hidden');
+                floatingBar.classList.add('hidden');
+                floatingBar.classList.remove('flex');
+            }
+        }
+
+        function openCart() {
+            const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+            if (totalItems === 0) {
+                showModal('Keranjang Kosong', 'Pilih minimal 1 menu makanan atau minuman terlebih dahulu.');
+                return;
+            }
+
+            document.getElementById('page-menu').classList.add('hidden');
+            document.getElementById('page-cart').classList.remove('hidden');
+            document.getElementById('page-cart').classList.add('flex');
+
+            renderCartItems();
+        }
+
+        function backToMenu() {
+            document.getElementById('page-cart').classList.add('hidden');
+            document.getElementById('page-menu').classList.remove('hidden');
+            document.getElementById('page-menu').classList.add('flex');
+        }
+
+        function renderCartItems() {
+            const listEl = document.getElementById('cart-items-list');
+            listEl.innerHTML = '';
+            let subtotal = 0;
+
+            for (let id in cart) {
+                const item = menuItems.find(m => m.id == id);
+                const itemTotal = item.price * cart[id];
+                subtotal += itemTotal;
+
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100";
+                row.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${item.image}" class="w-10 h-10 object-cover rounded-lg">
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800">${item.name}</h4>
+                            <p class="text-[10px] text-slate-500">${cart[id]}x @Rp ${item.price.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                    <span class="font-bold text-xs text-orange-600">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                `;
+                listEl.appendChild(row);
+            }
+
+            document.getElementById('bill-subtotal').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('bill-total').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        }
+
+        function processCheckout() {
+            let subtotal = 0;
+            for (let id in cart) {
+                const item = menuItems.find(m => m.id == id);
+                subtotal += item.price * cart[id];
+            }
+
+            const selectedPayment = document.querySelector('input[name="payment"]:checked').value;
+            const orderId = '#SC-' + Math.floor(1000 + Math.random() * 9000);
+
+            document.getElementById('succ-id').innerText = orderId;
+            document.getElementById('succ-name').innerText = `${currentUser.name} (${currentUser.kelas})`;
+            document.getElementById('succ-payment').innerText = selectedPayment;
+            document.getElementById('succ-total').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+
+            document.getElementById('page-cart').classList.add('hidden');
+            document.getElementById('page-success').classList.remove('hidden');
+            document.getElementById('page-success').classList.add('flex');
+        }
+
+        function resetApp() {
+            cart = {};
+            updateCartSummary();
+            document.getElementById('page-success').classList.add('hidden');
+            document.getElementById('page-login').classList.remove('hidden');
+            document.getElementById('page-login').classList.add('flex');
+            document.getElementById('username').value = '';
+            document.getElementById('userclass').value = '';
+        }
+    </script>
+</body>
+</html>
